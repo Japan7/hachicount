@@ -235,6 +235,65 @@ def test_cross_tag_payments_solve(alice, bob, carol, dave, tag_all):
         for u in net
     }.values())
 
+# ---------------------------------------------------------------------------
+# Rounding / indivisible amounts
+# ---------------------------------------------------------------------------
+
+def test_indivisible_three_people_remainder_1(alice, bob, carol, tag_all):
+    # 100 / 3 = 33 remainder 1 → last non-payer (carol) absorbs the extra cent
+    # tag_all = [alice, bob, carol], payer = alice → last non-payer = carol
+    txn = UserForGroupTransaction(userFrom=alice, tagTo=tag_all, value=100)
+    net = compute_net_account([txn], [])
+    assert net[bob]   == 33
+    assert net[carol] == 34    # last non-payer absorbs remainder
+    assert net[alice] == -67   # paid 100, keeps 33 as their share
+    assert sum(net.values()) == 0
+
+def test_indivisible_three_people_remainder_2(alice, bob, carol, tag_all):
+    # 101 / 3 = 33 remainder 2 → last non-payer (carol) absorbs 2 extra cents
+    txn = UserForGroupTransaction(userFrom=alice, tagTo=tag_all, value=101)
+    net = compute_net_account([txn], [])
+    assert net[bob]   == 33
+    assert net[carol] == 35    # last non-payer absorbs remainder
+    assert net[alice] == -68   # paid 101, keeps 33 as their share
+    assert sum(net.values()) == 0
+
+def test_indivisible_two_people_odd_amount(alice, bob):
+    # 101 / 2 = 50 remainder 1 → last non-payer (bob) absorbs the extra cent
+    tag = Tag(name="pair", users=[alice, bob])
+    txn = UserForGroupTransaction(userFrom=alice, tagTo=tag, value=101)
+    net = compute_net_account([txn], [])
+    assert net[bob]   == 51    # last non-payer absorbs remainder
+    assert net[alice] == -51   # paid 101, keeps 50 as their share
+    assert sum(net.values()) == 0
+
+def test_indivisible_four_people_remainder_1(alice, bob, carol, dave):
+    # 101 / 4 = 25 remainder 1 → last non-payer (dave) absorbs 1 cent
+    tag = Tag(name="quad", users=[alice, bob, carol, dave])
+    txn = UserForGroupTransaction(userFrom=alice, tagTo=tag, value=101)
+    net = compute_net_account([txn], [])
+    assert net[bob]   == 25
+    assert net[carol] == 25
+    assert net[dave]  == 26    # last non-payer absorbs remainder
+    assert net[alice] == -76   # paid 101, keeps 25 as their share
+    assert sum(net.values()) == 0
+
+def test_indivisible_multiple_transactions_sum_to_zero(alice, bob, tag_all):
+    # Both transactions have remainders; total must still sum to zero
+    t1 = UserForGroupTransaction(userFrom=alice, tagTo=tag_all, value=100)  # rem 1
+    t2 = UserForGroupTransaction(userFrom=bob,   tagTo=tag_all, value=200)  # rem 2
+    net = compute_net_account([t1, t2], [])
+    assert sum(net.values()) == 0
+
+def test_indivisible_solve_zeroes_out(alice, tag_all):
+    # After solving an indivisible split, all balances should reach zero
+    txn = UserForGroupTransaction(userFrom=alice, tagTo=tag_all, value=100)
+    net = compute_net_account([txn], [])
+    result = dict(net)
+    solve(result)
+    assert all(v == 0 for v in result.values())
+
+
 def test_five_people_two_overlapping_tags(alice, bob, carol, dave, eve):
     # Tag 1: alice pays for {alice, bob, carol, dave, eve} — 1000 → share=200
     tag_five = Tag(name="five", users=[alice, bob, carol, dave, eve])

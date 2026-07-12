@@ -37,12 +37,18 @@ def compute_net_account(user_to_group: list[UserForGroupTransaction], user_to_us
     net_accounts: Dict[User, int] = {}
 
     for elt in user_to_group:
-        share = elt.value // len(elt.tagTo.users)
+        n = len(elt.tagTo.users)
+        share = elt.value // n
+        remainder = elt.value % n
+        non_payers = [u for u in elt.tagTo.users if u != elt.userFrom]
+        last_non_payer = non_payers[-1]
         for user in elt.tagTo.users:
             if user not in net_accounts:
                 net_accounts[user] = 0
             if user == elt.userFrom:
                 net_accounts[user] -= elt.value - share
+            elif user == last_non_payer:
+                net_accounts[user] += share + remainder
             else:
                 net_accounts[user] += share
 
