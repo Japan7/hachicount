@@ -1,0 +1,132 @@
+ARCHITECTURE
+============
+
++-----------+  +-----------+  +-----------+
+| Appli Web |  | Appli Web |  | Appli Web |
++-----------+  +-----------+  +-----------+
+            \        |        /
+             \       |       /
+              \      |      /
+              +-------------+
+              | Serveur Web | <-- État partagé, notifie les clients
+              +-------------+     en cas de changement
+                     |
+                     |
+                     |
+                     |
+                     v
+           +------------------+
+           | Module de Calcul | <--> Base de données
+           |  des équilibres  |
+           +------------------+
+
+
+Au chargement de l'appli web, le client charge l'état des comptes, taggé avec un timestamp par sa dernière transaction
+Quand un client effectue une opération, il envoie le dernier timestamp qu'il connaît
+(aka celui sur lequel se base son opération)
+S'il y a mismatch avec la dernière opération enregistrée côté serveur, erreur côté client
+
+
+Les dépenses ont *un seul et unique* tag (e.g. alcool, viande, vegan...)
+Avant les remboursements, il faut faire correspondre les personnes du camp aux différents tags
+
+
+ORGANISATION
+============
+
+- Groupe de travail algo de répartition
+- Groupe de travail squelette du front
+- Groupe de travail base de données
+
+@dataclass
+class User:
+    name: str
+    discord_id: str
+
+@dataclass
+class Tag:
+    name: str
+    users: list[User]
+    # board: Board
+
+@dataclass
+class UserForGroupTransaction:
+    userFrom: User
+    tagTo: Tag
+    value: int # in cents
+    # board: Board
+
+@dataclass
+class UserToUserTransaction:
+    userFrom: User
+    userTo:   User
+    value: int # in cents
+    # board: Board
+
+# @dataclass
+# class Board:
+#     name: str
+
+STACK / TECHNOS
+===============
+
+https://reflex.dev/docs/state-structure/shared-state
+
+SCÉNARIOS D'UTILISATION
+=======================
+
+1. Rentrer des dépenses
+=======================
+
+L'utilisateur se login
+    OpenID Connect via discord, association ID <--> Personne dans la DB
+
+Onglet "dépenses"
+    Liste des dépenses rentrées par (l'/les) utilisateur(s)
+    Bouton en haut de la liste "+ Ajouter une dépense"
+    Possibilité de modifier une dépense
+
+Formulaire de création/modification de dépense
+    Rentrer le montant (que en EUR pour l'instant), et tagger la dépense
+
+    Pour tagger une dépense, avoir une liste des tags existants, avec barre de recherche,
+    et un item "+ Ajouter un tag" qui ouvre une popup
+
+    { Les noms de tags sont uniques }
+
+2. Assignation de gens aux tags
+===============================
+
+Liste des gens
+
+Chaque personne a une liste de tags, avec un "+" à la fin,
+qui ouvre le même popup d'ajout de tag que dans (1.) (Ajouter un tag à une dépense)
+
+Option :
+Champ libre pour chaque personne "Méthode de remboursement"
+
+3. Valider un remboursement
+===========================
+
+Onglet remboursements
+Interface grisée de base, avec un bouton "bloquer les dépenses",
+et une popup de confirmation
+
+Liste des remboursements à effectuer, avec un toggle pour dire qu'ils sont bien validés
+
+Exemple de liste :
+
+---
+Mes Remboursements
+
+De Moi à Personne 1    420€   <À faire>
+De Moi à Personne 2     69€   <Validé>
+---
+Autres Remboursements
+
+De X à Y             80885€   <À faire>
+De X à Y             80885€   <À faire>
+De X à Y             80885€   <À faire>
+De X à Y             80885€   <À faire>
+De X à Y             80885€   <À faire>
+---
