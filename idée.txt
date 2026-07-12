@@ -61,6 +61,7 @@ class UserToUserTransaction:
     userFrom: User
     userTo:   User
     value: int # in cents
+    completed: bool
     # board: Board
 
 # @dataclass
