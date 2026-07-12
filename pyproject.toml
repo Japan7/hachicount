@@ -4,4 +4,6 @@ version = "0.0.0"
 description = "Nanachan, but it's working"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "reflex>=0.9.6.post1",
+]
