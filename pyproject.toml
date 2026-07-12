@@ -1,0 +1,7 @@
+[project]
+name = "hachicount"
+version = "0.0.0"
+description = "Nanachan, but it's working"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
