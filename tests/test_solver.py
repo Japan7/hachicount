@@ -58,7 +58,7 @@ def test_group_payer_is_owed_by_others(alice, bob, carol):
 
 def test_group_balances_sum_to_zero(alice, bob, carol):
     tag = Tag(name="all", users=[alice, bob, carol])
-    txn = UserForGroupTransaction(userFrom=alice, tagTo=tag, value=1000)
+    txn = UserForGroupTransaction(userFrom=alice, tagTo=tag, value=900)  # 900/3=300 exact
     net = compute_net_account([txn], [])
     assert sum(net.values()) == 0
 

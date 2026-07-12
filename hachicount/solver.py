@@ -7,6 +7,9 @@ class User:
     name: str
     discord_id: str
 
+    def __hash__(self):
+        return hash(self.discord_id)
+
 @dataclass
 class Tag:
     name: str
