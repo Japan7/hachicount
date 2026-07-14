@@ -1,36 +1,21 @@
-"""Welcome to Reflex! This file outlines the steps to create a basic app."""
+"""hachicount — a shared-expense tracker, behind an OIDC login wall.
+
+This module is the composition root: it builds the app, mounts the backend auth
+routes, and registers the pages. Page components live in ``hachicount.pages``,
+the Reflex session guard in ``hachicount.states``, and the OIDC HTTP routes in
+``hachicount.auth_api``.
+"""
 
 import reflex as rx
 
-from rxconfig import config
+from hachicount.auth_api import build_auth_api
+from hachicount.pages.index import index
+from hachicount.pages.login import login
+from hachicount.routes import LOGIN_ROUTE, HOME_ROUTE
+from hachicount.states.auth import AuthState
 
-
-class State(rx.State):
-    """The app state."""
-
-
-def index() -> rx.Component:
-    # Welcome Page (Index)
-    return rx.container(
-        rx.color_mode.button(position="top-right"),
-        rx.vstack(
-            rx.heading("Welcome to Reflex!", size="9"),
-            rx.text(
-                "Get started by editing ",
-                rx.code(f"{config.app_name}/{config.app_name}.py"),
-                size="5",
-            ),
-            rx.link(
-                rx.button("Check out our docs!"),
-                href="https://reflex.dev/docs/getting-started/introduction/",
-                is_external=True,
-            ),
-            spacing="5",
-            justify="center",
-            min_height="85vh",
-        ),
-    )
-
-
-app = rx.App()
-app.add_page(index)
+# `api_transformer` mounts our /api/auth/* HTTP routes alongside the Reflex app, so
+# the OIDC flow can set an HttpOnly session cookie from a real HTTP response.
+app = rx.App(api_transformer=build_auth_api())
+app.add_page(index, route=HOME_ROUTE, on_load=AuthState.require_login)
+app.add_page(login, route=LOGIN_ROUTE, on_load=AuthState.redirect_if_authenticated)

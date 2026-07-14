@@ -4,3 +4,6 @@ assets/external/
 .web
 __pycache__/
 *.db
+
+# Local secrets (OIDC client id/secret, issuer URL). Use .env.example as a template.
+.env

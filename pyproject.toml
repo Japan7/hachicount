@@ -5,5 +5,14 @@ description = "Nanachan, but it's working"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "authlib>=1.7.2",
+    "httpx>=0.28.1",
+    "python-dotenv>=1.1.0",
     "reflex>=0.9.6.post1",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.21",
+    "ty>=0.0.58",
 ]
