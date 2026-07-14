@@ -7,8 +7,10 @@ requires-python = ">=3.14"
 dependencies = [
     "authlib>=1.7.2",
     "httpx>=0.28.1", # authlib's peer-dep
+    "psycopg[binary]>=3.3.4", # sqlalchemy's peer-dep
     "python-dotenv>=1.1.0",
     "reflex>=0.9.6.post1",
+    "sqlalchemy>=2.0.51",
 ]
 
 [dependency-groups]
