@@ -3,9 +3,10 @@
 import reflex as rx
 
 from hachicount.navigation import hard_redirect
-from hachicount.routes import AUTH_LOGOUT
+from hachicount.routes import AUTH_LOGOUT, HOME_ROUTE, PROFILE_ROUTE
 from hachicount.settings import backend_base_url
 from hachicount.states.auth import AuthState
+from hachicount.states.user import UserState
 
 
 def centered(*children: rx.Component) -> rx.Component:
@@ -24,11 +25,20 @@ def centered(*children: rx.Component) -> rx.Component:
 def _topbar() -> rx.Component:
     """The app top bar: brand on the left, theme + logout on the right."""
     return rx.hstack(
-        rx.hstack(
-            rx.image(src="/logo.png", alt="Japan7 logo", height="2rem", width="auto"),
-            rx.heading("Hachicount", size="5"),
-            align="center",
-            spacing="3",
+        rx.link(
+            rx.hstack(
+                rx.image(
+                    src="/logo.png", alt="Japan7 logo", height="2rem", width="auto"
+                ),
+                rx.heading("Hachicount", size="5"),
+                align="center",
+                spacing="3",
+            ),
+            href=HOME_ROUTE,
+            aria_label="Home",
+            underline="none",
+            color="inherit",
+            cursor="pointer",
         ),
         rx.spacer(),
         rx.hstack(
@@ -46,11 +56,21 @@ def _topbar() -> rx.Component:
                 color_scheme="gray",
                 aria_label="Log out",
             ),
-            rx.avatar(
-                fallback=AuthState.initials,
-                variant="solid",
-                radius="full",
-                size="2",
+            rx.link(
+                rx.avatar(
+                    fallback=UserState.initials,
+                    variant="solid",
+                    radius="full",
+                    size="2",
+                    cursor="pointer",
+                    transition="box-shadow 150ms ease, transform 150ms ease",
+                    _hover={
+                        "box_shadow": "0 0 0 2px var(--accent-8)",
+                        "transform": "scale(1.05)",
+                    },
+                ),
+                href=PROFILE_ROUTE,
+                aria_label="Profile",
             ),
             align="center",
             spacing="3",

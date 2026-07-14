@@ -10,11 +10,14 @@ out of reach of JavaScript/XSS. They reuse the framework-agnostic client in
 import json
 import logging
 
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 from starlette.routing import Route
 
+from hachicount.db.engine import transaction
+from hachicount.db.users import get_or_create_user_from_claims
 from hachicount.oidc import OIDCError, get_oidc_client
 from hachicount.routes import (
     AUTH_CALLBACK,
@@ -124,6 +127,17 @@ async def callback(request: Request) -> Response:
         return fail()
     if claims is None:
         logger.warning("ID token verification failed after code exchange")
+        return fail()
+
+    # Provision the local account for this identity before completing the login.
+    # Idempotent, so repeat logins reuse the existing row. If we cannot ensure a
+    # local account exists, we refuse the login rather than land a half-set-up
+    # session in the app.
+    try:
+        with transaction() as session:
+            get_or_create_user_from_claims(session, claims)
+    except SQLAlchemyError:
+        logger.warning("Could not provision the user account on login", exc_info=True)
         return fail()
 
     response = RedirectResponse(app_base_url() + HOME_ROUTE, status_code=_SEE_OTHER)

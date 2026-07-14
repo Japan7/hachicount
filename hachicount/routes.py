@@ -3,6 +3,7 @@
 # Reflex frontend pages.
 HOME_ROUTE = "/"
 LOGIN_ROUTE = "/auth/login"
+PROFILE_ROUTE = "/profile"
 
 # Backend HTTP routes (served by the ASGI app, not Reflex pages) that drive the
 # OIDC flow and set/clear the HttpOnly session cookie. `AUTH_CALLBACK` is the

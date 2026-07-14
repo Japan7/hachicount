@@ -34,30 +34,6 @@ class AuthState(rx.State):
         """Whether the current user was verified on the last session check."""
         return bool(self._claims)
 
-    @rx.var
-    def initials(self) -> str:
-        """Up to two uppercase initials for the current user's avatar fallback.
-
-        Derived from the verified claims, preferring the structured
-        ``given_name``/``family_name`` pair, then falling back to the display
-        ``name``, ``preferred_username`` or ``email`` local-part. Returns an
-        empty string when unauthenticated.
-        """
-        given = str(self._claims.get("given_name", "")).strip()
-        family = str(self._claims.get("family_name", "")).strip()
-        if given or family:
-            parts = [given, family]
-        else:
-            source = (
-                self._claims.get("name")
-                or self._claims.get("preferred_username")
-                or str(self._claims.get("email", "")).split("@")[0]
-                or str(self._claims.get("sub"))[0]
-            )
-            parts = str(source or "").split()
-        letters = [part[0] for part in parts if part]
-        return "".join(letters[:2]).upper()
-
     def _id_token(self) -> str:
         """Read the id_token from the incoming request's Cookie header."""
         raw = self.router.headers.cookie
