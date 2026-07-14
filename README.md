@@ -40,6 +40,17 @@ A [Reflex](https://reflex.dev) app whose pages sit behind an OpenID Connect
    deployment uses one origin for both — and cookies are marked `Secure`
    automatically when the backend URL is `https`.
 
+## Database
+
+A local PostgreSQL instance is provided via `docker-compose.yml`. It runs
+`postgres:18-alpine` with user/password/db all set to `hachicount`, stores its
+data in the `hachicount-postgres-data` volume, and exposes the port set in
+`DB_PORT` (from `.env`):
+
+```bash
+docker compose up -d
+```
+
 ## Run
 
 ```bash

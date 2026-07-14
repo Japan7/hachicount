@@ -1,0 +1,16 @@
+services:
+  hachicount-postgres:
+    image: postgres:18-alpine
+    container_name: hachicount-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hachicount
+      POSTGRES_PASSWORD: hachicount
+      POSTGRES_DB: hachicount
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - hachicount-postgres-data:/var/lib/postgresql
+
+volumes:
+  hachicount-postgres-data:
