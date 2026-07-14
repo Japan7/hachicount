@@ -5,13 +5,11 @@ session, then mirrors the matching database row's fields into state for the UI.
 The account row is provisioned during login, so this state only reads it.
 """
 
-import dataclasses
 import logging
 from typing import Any
 
 import reflex as rx
 
-from hachicount.db.counts import get_counts_for_user
 from hachicount.db.engine import transaction
 from hachicount.db.errors import UserNotFoundError
 from hachicount.db.models import User
@@ -20,14 +18,6 @@ from hachicount.routes import LOGIN_ROUTE
 from hachicount.states.auth import AuthState
 
 logger = logging.getLogger(__name__)
-
-
-@dataclasses.dataclass
-class CountView:
-    """A count as shown in the UI (ids as strings, safe to send to the client)."""
-
-    id: str
-    name: str
 
 
 class UserState(rx.State):
@@ -42,9 +32,6 @@ class UserState(rx.State):
     # Working copy backing the profile form's (controlled) name input, so typing
     # does not mutate the displayed ``name`` until the change is saved.
     name_draft: str = ""
-
-    # The counts this user takes part in, refreshed by ``load_user``.
-    counts: list[CountView] = []
 
     @rx.var
     def initials(self) -> str:
@@ -85,10 +72,6 @@ class UserState(rx.State):
                 )
                 return rx.redirect(LOGIN_ROUTE)
             self._cache(user)
-            self.counts = [
-                CountView(id=str(count.id), name=count.name)
-                for count in get_counts_for_user(session, user.id)
-            ]
 
     @rx.event
     def set_name_draft(self, value: str):
