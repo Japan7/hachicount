@@ -7,10 +7,67 @@ from hachicount.states.count import CountState, CountView
 
 
 def _count_row(count: CountView) -> rx.Component:
-    """A single count in the list."""
+    """A single count in the list, with a button to leave it."""
     return rx.card(
-        rx.text(count.name, weight="medium"),
+        rx.hstack(
+            rx.text(count.name, weight="medium"),
+            rx.spacer(),
+            rx.icon_button(
+                rx.icon("log-out", size=18),
+                on_click=CountState.ask_leave(count.id, count.name),
+                variant="ghost",
+                color_scheme="red",
+                aria_label="Leave count",
+                cursor="pointer",
+            ),
+            align="center",
+            class_name="w-full",
+        ),
         class_name="w-full",
+    )
+
+
+def _leave_dialog() -> rx.Component:
+    """The shared confirmation for leaving a count (opened via ``ask_leave``).
+
+    A single controlled dialog reused by every row: the row's button records the
+    target and opens it, and the warning changes when leaving would delete the
+    count.
+    """
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title("Leave ", CountState.leave_name),
+            rx.dialog.description(
+                rx.cond(
+                    CountState.leave_is_last,
+                    "You're the last participant of this count. "
+                    "If you leave now, it will be permanently deleted.",
+                    "Are you sure you want to leave this count?",
+                ),
+                margin_bottom="1rem",
+            ),
+            rx.hstack(
+                rx.dialog.close(
+                    rx.button(
+                        "Cancel",
+                        type="button",
+                        variant="soft",
+                        color_scheme="gray",
+                    ),
+                ),
+                rx.button(
+                    "Leave",
+                    on_click=CountState.confirm_leave,
+                    color_scheme="red",
+                ),
+                justify="end",
+                spacing="3",
+                class_name="w-full",
+            ),
+            max_width="26rem",
+        ),
+        open=CountState.leave_open,
+        on_open_change=CountState.set_leave_open,
     )
 
 
@@ -104,6 +161,7 @@ def index() -> rx.Component:
                 ),
                 _empty_state(),
             ),
+            _leave_dialog(),
             spacing="5",
         ),
     )
